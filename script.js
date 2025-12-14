@@ -31,13 +31,34 @@ function drawPoint(point, label, x, y) {
 }
 
 // Draw a line segment
-function drawLine(x1, y1, x2, y2) {
+function drawLine(x1, y1, x2, y2, style = '#333', lineWidth = 2) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = style;
+    ctx.lineWidth = lineWidth;
     ctx.stroke();
+}
+
+// Calculate the foot of perpendicular from point P to line segment defined by L1 and L2
+function footOfPerpendicular(P, L1, L2) {
+    // Direction vector of the line
+    const dx = L2.x - L1.x;
+    const dy = L2.y - L1.y;
+
+    // Vector from L1 to P
+    const vx = P.x - L1.x;
+    const vy = P.y - L1.y;
+
+    // Project v onto d
+    const t = (vx * dx + vy * dy) / (dx * dx + dy * dy);
+
+    // Calculate the foot of perpendicular
+    return {
+        x: L1.x + t * dx,
+        y: L1.y + t * dy,
+        radius: 6
+    };
 }
 
 // Draw the entire scene
@@ -50,10 +71,19 @@ function draw() {
     drawLine(points.B.x, points.B.y, points.C.x, points.C.y);
     drawLine(points.C.x, points.C.y, points.A.x, points.A.y);
 
-    // Draw the points
+    // Calculate point D (foot of perpendicular from A to BC)
+    const D = footOfPerpendicular(points.A, points.B, points.C);
+
+    // Draw perpendicular from A to D
+    drawLine(points.A.x, points.A.y, D.x, D.y, '#E91E63', 1.5);
+
+    // Draw the main points
     drawPoint(points.A, 'A', points.A.x, points.A.y);
     drawPoint(points.B, 'B', points.B.x, points.B.y);
     drawPoint(points.C, 'C', points.C.x, points.C.y);
+
+    // Draw point D
+    drawPoint(D, 'D', D.x, D.y);
 }
 
 // Check if mouse is over a point
@@ -92,38 +122,39 @@ canvas.addEventListener('mousedown', (e) => {
     }
 });
 
-// Mouse move event
+// Mouse move event on canvas for hover effects
 canvas.addEventListener('mousemove', (e) => {
     const mousePos = getMousePos(e);
 
-    if (isDragging && draggedPoint) {
-        // Update the position of the dragged point
-        points[draggedPoint].x = mousePos.x;
-        points[draggedPoint].y = mousePos.y;
-
-        // Redraw the scene
-        draw();
-    } else {
+    if (!isDragging) {
         // Change cursor if hovering over a point
         const pointLabel = getPointAtPosition(mousePos.x, mousePos.y);
         canvas.style.cursor = pointLabel ? 'grab' : 'default';
     }
 });
 
-// Mouse up event
-canvas.addEventListener('mouseup', () => {
-    isDragging = false;
-    draggedPoint = null;
-    canvas.classList.remove('grabbing');
-    canvas.style.cursor = 'default';
+// Mouse move event on document to track dragging even outside canvas
+document.addEventListener('mousemove', (e) => {
+    if (isDragging && draggedPoint) {
+        const mousePos = getMousePos(e);
+
+        // Update the position of the dragged point
+        points[draggedPoint].x = mousePos.x;
+        points[draggedPoint].y = mousePos.y;
+
+        // Redraw the scene
+        draw();
+    }
 });
 
-// Mouse leave event
-canvas.addEventListener('mouseleave', () => {
-    isDragging = false;
-    draggedPoint = null;
-    canvas.classList.remove('grabbing');
-    canvas.style.cursor = 'default';
+// Mouse up event on document to release drag even outside canvas
+document.addEventListener('mouseup', () => {
+    if (isDragging) {
+        isDragging = false;
+        draggedPoint = null;
+        canvas.classList.remove('grabbing');
+        canvas.style.cursor = 'default';
+    }
 });
 
 // Initial draw
