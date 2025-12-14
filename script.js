@@ -77,11 +77,32 @@ function draw() {
     // Calculate point E (foot of perpendicular from B to AC)
     const E = footOfPerpendicular(points.B, points.A, points.C);
 
+    // Calculate point P (foot of perpendicular from D to AB)
+    const P = footOfPerpendicular(D, points.A, points.B);
+
+    // Calculate point Q (foot of perpendicular from D to BE)
+    const Q = footOfPerpendicular(D, points.B, E);
+
+    // Calculate point S (foot of perpendicular from D to AC)
+    const S = footOfPerpendicular(D, points.A, points.C);
+
     // Draw perpendicular from A to D
     drawLine(points.A.x, points.A.y, D.x, D.y, '#E91E63', 1.5);
 
     // Draw perpendicular from B to E
     drawLine(points.B.x, points.B.y, E.x, E.y, '#E91E63', 1.5);
+
+    // Draw perpendicular from D to P
+    drawLine(D.x, D.y, P.x, P.y, '#9C27B0', 1.5);
+
+    // Draw perpendicular from D to Q
+    drawLine(D.x, D.y, Q.x, Q.y, '#9C27B0', 1.5);
+
+    // Draw perpendicular from D to S
+    drawLine(D.x, D.y, S.x, S.y, '#9C27B0', 1.5);
+
+    // Draw line from P to S
+    drawLine(P.x, P.y, S.x, S.y, '#FF9800', 2);
 
     // Draw the main points
     drawPoint(points.A, 'A', points.A.x, points.A.y);
@@ -93,6 +114,15 @@ function draw() {
 
     // Draw point E
     drawPoint(E, 'E', E.x, E.y);
+
+    // Draw point P
+    drawPoint(P, 'P', P.x, P.y);
+
+    // Draw point Q
+    drawPoint(Q, 'Q', Q.x, Q.y);
+
+    // Draw point S
+    drawPoint(S, 'S', S.x, S.y);
 }
 
 // Check if mouse is over a point
