@@ -62,6 +62,34 @@ function drawLine(x1, y1, x2, y2, style = '#333', lineWidth = 2) {
     ctx.stroke();
 }
 
+// Draw extended line through two points with faded extensions
+function drawExtendedLine(x1, y1, x2, y2, extensionLength = 1000) {
+    // Calculate direction vector
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length === 0) return;
+
+    // Normalize direction
+    const ux = dx / length;
+    const uy = dy / length;
+
+    // Calculate extended endpoints
+    const extX1 = x1 - ux * extensionLength;
+    const extY1 = y1 - uy * extensionLength;
+    const extX2 = x2 + ux * extensionLength;
+    const extY2 = y2 + uy * extensionLength;
+
+    // Draw faded extension
+    ctx.beginPath();
+    ctx.moveTo(extX1, extY1);
+    ctx.lineTo(extX2, extY2);
+    ctx.strokeStyle = 'rgba(150, 150, 150, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+}
+
 // Calculate the foot of perpendicular from point P to line segment defined by L1 and L2
 function footOfPerpendicular(P, L1, L2) {
     // Direction vector of the line
@@ -88,6 +116,11 @@ function draw() {
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw faded line extensions first (so they appear behind everything)
+    drawExtendedLine(points.A.x, points.A.y, points.B.x, points.B.y);
+    drawExtendedLine(points.B.x, points.B.y, points.C.x, points.C.y);
+    drawExtendedLine(points.C.x, points.C.y, points.A.x, points.A.y);
+
     // Draw the triangle sides
     drawLine(points.A.x, points.A.y, points.B.x, points.B.y);
     drawLine(points.B.x, points.B.y, points.C.x, points.C.y);
@@ -98,6 +131,9 @@ function draw() {
 
     // Calculate point E (foot of perpendicular from B to AC)
     const E = footOfPerpendicular(points.B, points.A, points.C);
+
+    // Draw faded extension for line BE
+    drawExtendedLine(points.B.x, points.B.y, E.x, E.y);
 
     // Calculate point P (foot of perpendicular from D to AB)
     const P = footOfPerpendicular(D, points.A, points.B);
