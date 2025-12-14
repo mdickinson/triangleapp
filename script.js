@@ -29,21 +29,44 @@ const SIZES = {
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
+// Set canvas size dynamically based on available space
+function setCanvasSize() {
+    // Calculate optimal canvas size
+    const maxWidth = Math.min(window.innerWidth - 40, 1400);
+    const maxHeight = Math.min(window.innerHeight - 200, 1000);
+    
+    // Use 4:3 aspect ratio
+    let width = maxWidth;
+    let height = width * 0.75;
+    
+    if (height > maxHeight) {
+        height = maxHeight;
+        width = height / 0.75;
+    }
+    
+    canvas.width = Math.floor(width);
+    canvas.height = Math.floor(height);
+    
+    return { width: canvas.width, height: canvas.height };
+}
+
+const canvasSize = setCanvasSize();
+
 // Configure canvas context for better rendering
 ctx.lineCap = 'round';
 ctx.lineJoin = 'round';
 
-// Initialize points A, B, and C
+// Initialize points A, B, and C proportionally to canvas size
 const initialPositions = {
-    A: { x: 200, y: 150 },
-    B: { x: 600, y: 150 },
-    C: { x: 400, y: 450 }
+    A: { x: canvasSize.width * 0.25, y: canvasSize.height * 0.25 },
+    B: { x: canvasSize.width * 0.75, y: canvasSize.height * 0.25 },
+    C: { x: canvasSize.width * 0.5, y: canvasSize.height * 0.75 }
 };
 
 const points = {
-    A: { x: 200, y: 150, radius: SIZES.MAIN_POINT_RADIUS },
-    B: { x: 600, y: 150, radius: SIZES.MAIN_POINT_RADIUS },
-    C: { x: 400, y: 450, radius: SIZES.MAIN_POINT_RADIUS }
+    A: { x: initialPositions.A.x, y: initialPositions.A.y, radius: SIZES.MAIN_POINT_RADIUS },
+    B: { x: initialPositions.B.x, y: initialPositions.B.y, radius: SIZES.MAIN_POINT_RADIUS },
+    C: { x: initialPositions.C.x, y: initialPositions.C.y, radius: SIZES.MAIN_POINT_RADIUS }
 };
 
 let draggedPoint = null;
