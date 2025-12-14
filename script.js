@@ -3,8 +3,12 @@
 // ============================================================================
 
 const COLORS = {
-    PRIMARY_POINT: '#2196F3',
-    PRIMARY_POINT_STROKE: '#1976D2',
+    PRIMARY_POINT: '#4CAF50',            // Green for main triangle vertices A, B, C
+    PRIMARY_POINT_STROKE: '#388E3C',
+    ALTITUDE_FOOT_POINT: '#2196F3',      // Blue for altitude feet D, E
+    ALTITUDE_FOOT_POINT_STROKE: '#1976D2',
+    COLLINEAR_POINT: '#FF6F00',          // Orange for collinear points P, Q, S
+    COLLINEAR_POINT_STROKE: '#E65100',
     TRIANGLE_SIDE: '#333',
     PERPENDICULAR_PRIMARY: '#E91E63',    // AD, BE
     PERPENDICULAR_SECONDARY: '#9C27B0',  // DP, DQ, DS
@@ -34,19 +38,19 @@ function setCanvasSize() {
     // Calculate optimal canvas size
     const maxWidth = Math.min(window.innerWidth - 40, 1400);
     const maxHeight = Math.min(window.innerHeight - 200, 1000);
-    
+
     // Use 4:3 aspect ratio
     let width = maxWidth;
     let height = width * 0.75;
-    
+
     if (height > maxHeight) {
         height = maxHeight;
         width = height / 0.75;
     }
-    
+
     canvas.width = Math.floor(width);
     canvas.height = Math.floor(height);
-    
+
     return { width: canvas.width, height: canvas.height };
 }
 
@@ -127,13 +131,13 @@ function footOfPerpendicular(P, L1, L2) {
 // ============================================================================
 
 // Draw a point with label
-function drawPoint(point, label, x, y) {
+function drawPoint(point, label, x, y, fillColor = COLORS.ALTITUDE_FOOT_POINT, strokeColor = COLORS.ALTITUDE_FOOT_POINT_STROKE) {
     // Draw the point circle
     ctx.beginPath();
     ctx.arc(x, y, point.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = COLORS.PRIMARY_POINT;
+    ctx.fillStyle = fillColor;
     ctx.fill();
-    ctx.strokeStyle = COLORS.PRIMARY_POINT_STROKE;
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = SIZES.TRIANGLE_LINE_WIDTH;
     ctx.stroke();
 
@@ -245,25 +249,19 @@ function draw() {
         drawLine(Q.x, Q.y, S.x, S.y, COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH);
     }
 
-    // Draw the main points
-    drawPoint(points.A, 'A', points.A.x, points.A.y);
-    drawPoint(points.B, 'B', points.B.x, points.B.y);
-    drawPoint(points.C, 'C', points.C.x, points.C.y);
+    // Draw the main points (green - interactive)
+    drawPoint(points.A, 'A', points.A.x, points.A.y, COLORS.PRIMARY_POINT, COLORS.PRIMARY_POINT_STROKE);
+    drawPoint(points.B, 'B', points.B.x, points.B.y, COLORS.PRIMARY_POINT, COLORS.PRIMARY_POINT_STROKE);
+    drawPoint(points.C, 'C', points.C.x, points.C.y, COLORS.PRIMARY_POINT, COLORS.PRIMARY_POINT_STROKE);
 
-    // Draw point D
-    drawPoint(D, 'D', D.x, D.y);
+    // Draw altitude feet (blue)
+    drawPoint(D, 'D', D.x, D.y, COLORS.ALTITUDE_FOOT_POINT, COLORS.ALTITUDE_FOOT_POINT_STROKE);
+    drawPoint(E, 'E', E.x, E.y, COLORS.ALTITUDE_FOOT_POINT, COLORS.ALTITUDE_FOOT_POINT_STROKE);
 
-    // Draw point E
-    drawPoint(E, 'E', E.x, E.y);
-
-    // Draw point P
-    drawPoint(P, 'P', P.x, P.y);
-
-    // Draw point Q
-    drawPoint(Q, 'Q', Q.x, Q.y);
-
-    // Draw point S
-    drawPoint(S, 'S', S.x, S.y);
+    // Draw collinear points (orange)
+    drawPoint(P, 'P', P.x, P.y, COLORS.COLLINEAR_POINT, COLORS.COLLINEAR_POINT_STROKE);
+    drawPoint(Q, 'Q', Q.x, Q.y, COLORS.COLLINEAR_POINT, COLORS.COLLINEAR_POINT_STROKE);
+    drawPoint(S, 'S', S.x, S.y, COLORS.COLLINEAR_POINT, COLORS.COLLINEAR_POINT_STROKE);
 }
 
 // ============================================================================
