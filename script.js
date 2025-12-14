@@ -208,6 +208,9 @@ function draw() {
     // Calculate point E (foot of perpendicular from B to AC)
     const E = footOfPerpendicular(points.B, points.A, points.C);
 
+    // Calculate point F (foot of perpendicular from C to AB)
+    const F = footOfPerpendicular(points.C, points.A, points.B);
+
     // Draw faded extension for line BE
     drawExtendedLine(points.B.x, points.B.y, E.x, E.y);
 
@@ -216,6 +219,9 @@ function draw() {
 
     // Calculate point Q (foot of perpendicular from D to BE)
     const Q = footOfPerpendicular(D, points.B, E);
+
+    // Calculate point R (foot of perpendicular from D to CF)
+    const R = footOfPerpendicular(D, points.C, F);
 
     // Calculate point S (foot of perpendicular from D to AC)
     const S = footOfPerpendicular(D, points.A, points.C);
@@ -226,11 +232,17 @@ function draw() {
     // Draw perpendicular from B to E
     drawLine(points.B.x, points.B.y, E.x, E.y, COLORS.PERPENDICULAR_PRIMARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
+    // Draw perpendicular from C to F
+    drawLine(points.C.x, points.C.y, F.x, F.y, COLORS.PERPENDICULAR_PRIMARY, SIZES.PERPENDICULAR_LINE_WIDTH);
+
     // Draw perpendicular from D to P
     drawLine(D.x, D.y, P.x, P.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
     // Draw perpendicular from D to Q
     drawLine(D.x, D.y, Q.x, Q.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
+
+    // Draw perpendicular from D to R
+    drawLine(D.x, D.y, R.x, R.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
     // Draw perpendicular from D to S
     drawLine(D.x, D.y, S.x, S.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
@@ -257,10 +269,12 @@ function draw() {
     // Draw altitude feet (blue)
     drawPoint(D, 'D', D.x, D.y, COLORS.ALTITUDE_FOOT_POINT, COLORS.ALTITUDE_FOOT_POINT_STROKE);
     drawPoint(E, 'E', E.x, E.y, COLORS.ALTITUDE_FOOT_POINT, COLORS.ALTITUDE_FOOT_POINT_STROKE);
+    drawPoint(F, 'F', F.x, F.y, COLORS.ALTITUDE_FOOT_POINT, COLORS.ALTITUDE_FOOT_POINT_STROKE);
 
     // Draw collinear points (orange)
     drawPoint(P, 'P', P.x, P.y, COLORS.COLLINEAR_POINT, COLORS.COLLINEAR_POINT_STROKE);
     drawPoint(Q, 'Q', Q.x, Q.y, COLORS.COLLINEAR_POINT, COLORS.COLLINEAR_POINT_STROKE);
+    drawPoint(R, 'R', R.x, R.y, COLORS.COLLINEAR_POINT, COLORS.COLLINEAR_POINT_STROKE);
     drawPoint(S, 'S', S.x, S.y, COLORS.COLLINEAR_POINT, COLORS.COLLINEAR_POINT_STROKE);
 }
 
