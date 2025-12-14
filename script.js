@@ -30,21 +30,26 @@ const SIZES = {
 // CANVAS SETUP AND STATE
 // ============================================================================
 
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+let canvas;
+let ctx;
+let canvasSize;
 
 // Set canvas size dynamically based on available space
 function setCanvasSize() {
-    // Calculate optimal canvas size
+    // Calculate optimal canvas size with minimums
     const maxWidth = Math.min(window.innerWidth - 40, 1400);
     const maxHeight = Math.min(window.innerHeight - 200, 1000);
 
+    // Ensure minimum size
+    const minWidth = 600;
+    const minHeight = 450;
+
     // Use 4:3 aspect ratio
-    let width = maxWidth;
+    let width = Math.max(maxWidth, minWidth);
     let height = width * 0.75;
 
     if (height > maxHeight) {
-        height = maxHeight;
+        height = Math.max(maxHeight, minHeight);
         width = height / 0.75;
     }
 
@@ -54,24 +59,26 @@ function setCanvasSize() {
     return { width: canvas.width, height: canvas.height };
 }
 
-const canvasSize = setCanvasSize();
+function initializeCanvas() {
+    canvas = document.getElementById('canvas');
+    if (!canvas) {
+        console.error('Canvas element not found');
+        return false;
+    }
 
-// Configure canvas context for better rendering
-ctx.lineCap = 'round';
-ctx.lineJoin = 'round';
+    ctx = canvas.getContext('2d');
+    canvasSize = setCanvasSize();
 
-// Initialize points A, B, and C proportionally to canvas size
-const initialPositions = {
-    A: { x: canvasSize.width * 0.25, y: canvasSize.height * 0.25 },
-    B: { x: canvasSize.width * 0.75, y: canvasSize.height * 0.25 },
-    C: { x: canvasSize.width * 0.5, y: canvasSize.height * 0.75 }
-};
+    // Configure canvas context for better rendering
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-const points = {
-    A: { x: initialPositions.A.x, y: initialPositions.A.y, radius: SIZES.MAIN_POINT_RADIUS },
-    B: { x: initialPositions.B.x, y: initialPositions.B.y, radius: SIZES.MAIN_POINT_RADIUS },
-    C: { x: initialPositions.C.x, y: initialPositions.C.y, radius: SIZES.MAIN_POINT_RADIUS }
-};
+    return true;
+}
+
+// Points will be initialized after canvas is ready
+let initialPositions;
+let points;
 
 let draggedPoint = null;
 let isDragging = false;
@@ -322,64 +329,93 @@ function getMousePos(e) {
 }
 
 // ============================================================================
-// EVENT HANDLERS
+// EVENT HANDLERS (Set up after initialization)
 // ============================================================================
 
-// Mouse down event
-canvas.addEventListener('mousedown', (e) => {
-    const mousePos = getMousePos(e);
-    const pointLabel = getPointAtPosition(mousePos.x, mousePos.y);
-
-    if (pointLabel) {
-        draggedPoint = pointLabel;
-        isDragging = true;
-        canvas.classList.add('grabbing');
-    }
-});
-
-// Mouse move event on canvas for hover effects
-canvas.addEventListener('mousemove', (e) => {
-    const mousePos = getMousePos(e);
-
-    if (!isDragging) {
-        // Change cursor if hovering over a point
+function setupEventHandlers() {
+    // Mouse down event
+    canvas.addEventListener('mousedown', (e) => {
+        const mousePos = getMousePos(e);
         const pointLabel = getPointAtPosition(mousePos.x, mousePos.y);
-        canvas.style.cursor = pointLabel ? 'grab' : 'default';
-    }
-});
 
-// Mouse move event on document to track dragging even outside canvas
-document.addEventListener('mousemove', (e) => {
-    if (isDragging && draggedPoint) {
+        if (pointLabel) {
+            draggedPoint = pointLabel;
+            isDragging = true;
+            canvas.classList.add('grabbing');
+        }
+    });
+
+    // Mouse move event on canvas for hover effects
+    canvas.addEventListener('mousemove', (e) => {
         const mousePos = getMousePos(e);
 
-        // Update the position of the dragged point with boundary constraints
-        const point = points[draggedPoint];
-        points[draggedPoint].x = clamp(mousePos.x, point.radius, canvas.width - point.radius);
-        points[draggedPoint].y = clamp(mousePos.y, point.radius, canvas.height - point.radius);
+        if (!isDragging) {
+            // Change cursor if hovering over a point
+            const pointLabel = getPointAtPosition(mousePos.x, mousePos.y);
+            canvas.style.cursor = pointLabel ? 'grab' : 'default';
+        }
+    });
 
-        // Redraw the scene
-        draw();
-    }
-});
+    // Mouse move event on document to track dragging even outside canvas
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging && draggedPoint) {
+            const mousePos = getMousePos(e);
 
-// Mouse up event on document to release drag even outside canvas
-document.addEventListener('mouseup', () => {
-    if (isDragging) {
-        isDragging = false;
-        draggedPoint = null;
-        canvas.classList.remove('grabbing');
-        canvas.style.cursor = 'default';
-    }
-});
+            // Update the position of the dragged point with boundary constraints
+            const point = points[draggedPoint];
+            points[draggedPoint].x = clamp(mousePos.x, point.radius, canvas.width - point.radius);
+            points[draggedPoint].y = clamp(mousePos.y, point.radius, canvas.height - point.radius);
+
+            // Redraw the scene
+            draw();
+        }
+    });
+
+    // Mouse up event on document to release drag even outside canvas
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            draggedPoint = null;
+            canvas.classList.remove('grabbing');
+            canvas.style.cursor = 'default';
+        }
+    });
+}
 
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
 
-// Reset button handler
-const resetButton = document.getElementById('resetButton');
-resetButton.addEventListener('click', resetPoints);
+// Initialize application when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize canvas
+    if (!initializeCanvas()) {
+        console.error('Failed to initialize canvas');
+        return;
+    }
 
-// Initial draw
-draw();
+    // Initialize points A, B, and C proportionally to canvas size
+    initialPositions = {
+        A: { x: canvasSize.width * 0.25, y: canvasSize.height * 0.25 },
+        B: { x: canvasSize.width * 0.75, y: canvasSize.height * 0.25 },
+        C: { x: canvasSize.width * 0.5, y: canvasSize.height * 0.75 }
+    };
+
+    points = {
+        A: { x: initialPositions.A.x, y: initialPositions.A.y, radius: SIZES.MAIN_POINT_RADIUS },
+        B: { x: initialPositions.B.x, y: initialPositions.B.y, radius: SIZES.MAIN_POINT_RADIUS },
+        C: { x: initialPositions.C.x, y: initialPositions.C.y, radius: SIZES.MAIN_POINT_RADIUS }
+    };
+
+    // Set up event handlers
+    setupEventHandlers();
+
+    // Reset button handler
+    const resetButton = document.getElementById('resetButton');
+    if (resetButton) {
+        resetButton.addEventListener('click', resetPoints);
+    }
+
+    // Initial draw
+    draw();
+});
