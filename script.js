@@ -247,19 +247,33 @@ function draw() {
     // Draw perpendicular from D to S
     drawLine(D.x, D.y, S.x, S.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
-    // Determine which two of P, Q, S are most extreme (furthest apart)
-    const distPQ = distance(P, Q);
-    const distPS = distance(P, S);
-    const distQS = distance(Q, S);
+    // Determine which two of P, Q, R, S are most extreme (furthest apart)
+    const collinearPoints = [
+        { point: P, label: 'P' },
+        { point: Q, label: 'Q' },
+        { point: R, label: 'R' },
+        { point: S, label: 'S' }
+    ];
+
+    let maxDist = 0;
+    let extremePoints = [collinearPoints[0], collinearPoints[1]];
+
+    for (let i = 0; i < collinearPoints.length; i++) {
+        for (let j = i + 1; j < collinearPoints.length; j++) {
+            const dist = distance(collinearPoints[i].point, collinearPoints[j].point);
+            if (dist > maxDist) {
+                maxDist = dist;
+                extremePoints = [collinearPoints[i], collinearPoints[j]];
+            }
+        }
+    }
 
     // Draw line between the two most extreme points to show collinearity
-    if (distPQ >= distPS && distPQ >= distQS) {
-        drawLine(P.x, P.y, Q.x, Q.y, COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH);
-    } else if (distPS >= distPQ && distPS >= distQS) {
-        drawLine(P.x, P.y, S.x, S.y, COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH);
-    } else {
-        drawLine(Q.x, Q.y, S.x, S.y, COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH);
-    }
+    drawLine(
+        extremePoints[0].point.x, extremePoints[0].point.y,
+        extremePoints[1].point.x, extremePoints[1].point.y,
+        COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH
+    );
 
     // Draw the main points (green - interactive)
     drawPoint(points.A, 'A', points.A.x, points.A.y, COLORS.PRIMARY_POINT, COLORS.PRIMARY_POINT_STROKE);
