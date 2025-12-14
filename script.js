@@ -1,5 +1,37 @@
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const COLORS = {
+    PRIMARY_POINT: '#2196F3',
+    PRIMARY_POINT_STROKE: '#1976D2',
+    TRIANGLE_SIDE: '#333',
+    PERPENDICULAR_PRIMARY: '#E91E63',    // AD, BE
+    PERPENDICULAR_SECONDARY: '#9C27B0',  // DP, DQ, DS
+    COLLINEARITY_LINE: '#FF9800',        // Line showing P, Q, S collinear
+    EXTENSION_LINE: 'rgba(150, 150, 150, 0.5)'
+};
+
+const SIZES = {
+    MAIN_POINT_RADIUS: 8,
+    DERIVED_POINT_RADIUS: 6,
+    TRIANGLE_LINE_WIDTH: 2,
+    PERPENDICULAR_LINE_WIDTH: 1.5,
+    COLLINEARITY_LINE_WIDTH: 2,
+    EXTENSION_LINE_WIDTH: 1,
+    EXTENSION_LENGTH: 1000
+};
+
+// ============================================================================
+// CANVAS SETUP AND STATE
+// ============================================================================
+
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+
+// Configure canvas context for better rendering
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
 
 // Initialize points A, B, and C
 const initialPositions = {
@@ -9,17 +41,26 @@ const initialPositions = {
 };
 
 const points = {
-    A: { x: 200, y: 150, radius: 8 },
-    B: { x: 600, y: 150, radius: 8 },
-    C: { x: 400, y: 450, radius: 8 }
+    A: { x: 200, y: 150, radius: SIZES.MAIN_POINT_RADIUS },
+    B: { x: 600, y: 150, radius: SIZES.MAIN_POINT_RADIUS },
+    C: { x: 400, y: 450, radius: SIZES.MAIN_POINT_RADIUS }
 };
 
 let draggedPoint = null;
 let isDragging = false;
 
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
 // Clamp a value between min and max
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
+}
+
+// Calculate Euclidean distance between two points
+function distance(p1, p2) {
+    return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 }
 
 // Reset all points to their initial positions
@@ -33,64 +74,11 @@ function resetPoints() {
     draw();
 }
 
-// Draw a point
-function drawPoint(point, label, x, y) {
-    // Draw the point circle
-    ctx.beginPath();
-    ctx.arc(x, y, point.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = '#2196F3';
-    ctx.fill();
-    ctx.strokeStyle = '#1976D2';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+// ============================================================================
+// GEOMETRY FUNCTIONS
+// ============================================================================
 
-    // Draw the label
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, x, y - point.radius - 12);
-}
-
-// Draw a line segment
-function drawLine(x1, y1, x2, y2, style = '#333', lineWidth = 2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = style;
-    ctx.lineWidth = lineWidth;
-    ctx.stroke();
-}
-
-// Draw extended line through two points with faded extensions
-function drawExtendedLine(x1, y1, x2, y2, extensionLength = 1000) {
-    // Calculate direction vector
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const length = Math.sqrt(dx * dx + dy * dy);
-
-    if (length === 0) return;
-
-    // Normalize direction
-    const ux = dx / length;
-    const uy = dy / length;
-
-    // Calculate extended endpoints
-    const extX1 = x1 - ux * extensionLength;
-    const extY1 = y1 - uy * extensionLength;
-    const extX2 = x2 + ux * extensionLength;
-    const extY2 = y2 + uy * extensionLength;
-
-    // Draw faded extension
-    ctx.beginPath();
-    ctx.moveTo(extX1, extY1);
-    ctx.lineTo(extX2, extY2);
-    ctx.strokeStyle = 'rgba(150, 150, 150, 0.5)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-}
-
-// Calculate the foot of perpendicular from point P to line segment defined by L1 and L2
+// Calculate the foot of perpendicular from point P to line defined by L1 and L2
 function footOfPerpendicular(P, L1, L2) {
     // Direction vector of the line
     const dx = L2.x - L1.x;
@@ -107,8 +95,69 @@ function footOfPerpendicular(P, L1, L2) {
     return {
         x: L1.x + t * dx,
         y: L1.y + t * dy,
-        radius: 6
+        radius: SIZES.DERIVED_POINT_RADIUS
     };
+}
+
+// ============================================================================
+// DRAWING FUNCTIONS
+// ============================================================================
+
+// Draw a point with label
+function drawPoint(point, label, x, y) {
+    // Draw the point circle
+    ctx.beginPath();
+    ctx.arc(x, y, point.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = COLORS.PRIMARY_POINT;
+    ctx.fill();
+    ctx.strokeStyle = COLORS.PRIMARY_POINT_STROKE;
+    ctx.lineWidth = SIZES.TRIANGLE_LINE_WIDTH;
+    ctx.stroke();
+
+    // Draw the label
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x, y - point.radius - 12);
+}
+
+// Draw a line segment
+function drawLine(x1, y1, x2, y2, style = COLORS.TRIANGLE_SIDE, lineWidth = SIZES.TRIANGLE_LINE_WIDTH) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = style;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+}
+
+// Draw extended line through two points with faded extensions
+function drawExtendedLine(x1, y1, x2, y2) {
+    // Calculate direction vector
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length === 0) return;
+
+    // Normalize direction
+    const ux = dx / length;
+    const uy = dy / length;
+
+    // Calculate extended endpoints
+    const extX1 = x1 - ux * SIZES.EXTENSION_LENGTH;
+    const extY1 = y1 - uy * SIZES.EXTENSION_LENGTH;
+    const extX2 = x2 + ux * SIZES.EXTENSION_LENGTH;
+    const extY2 = y2 + uy * SIZES.EXTENSION_LENGTH;
+
+    // Draw faded extension
+    ctx.beginPath();
+    ctx.moveTo(extX1, extY1);
+    ctx.lineTo(extX2, extY2);
+    ctx.strokeStyle = COLORS.EXTENSION_LINE;
+    ctx.lineWidth = SIZES.EXTENSION_LINE_WIDTH;
+    ctx.stroke();
 }
 
 // Draw the entire scene
@@ -145,32 +194,32 @@ function draw() {
     const S = footOfPerpendicular(D, points.A, points.C);
 
     // Draw perpendicular from A to D
-    drawLine(points.A.x, points.A.y, D.x, D.y, '#E91E63', 1.5);
+    drawLine(points.A.x, points.A.y, D.x, D.y, COLORS.PERPENDICULAR_PRIMARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
     // Draw perpendicular from B to E
-    drawLine(points.B.x, points.B.y, E.x, E.y, '#E91E63', 1.5);
+    drawLine(points.B.x, points.B.y, E.x, E.y, COLORS.PERPENDICULAR_PRIMARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
     // Draw perpendicular from D to P
-    drawLine(D.x, D.y, P.x, P.y, '#9C27B0', 1.5);
+    drawLine(D.x, D.y, P.x, P.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
     // Draw perpendicular from D to Q
-    drawLine(D.x, D.y, Q.x, Q.y, '#9C27B0', 1.5);
+    drawLine(D.x, D.y, Q.x, Q.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
     // Draw perpendicular from D to S
-    drawLine(D.x, D.y, S.x, S.y, '#9C27B0', 1.5);
+    drawLine(D.x, D.y, S.x, S.y, COLORS.PERPENDICULAR_SECONDARY, SIZES.PERPENDICULAR_LINE_WIDTH);
 
     // Determine which two of P, Q, S are most extreme (furthest apart)
-    const distPQ = Math.sqrt((P.x - Q.x) ** 2 + (P.y - Q.y) ** 2);
-    const distPS = Math.sqrt((P.x - S.x) ** 2 + (P.y - S.y) ** 2);
-    const distQS = Math.sqrt((Q.x - S.x) ** 2 + (Q.y - S.y) ** 2);
-    
-    // Draw line between the two most extreme points
+    const distPQ = distance(P, Q);
+    const distPS = distance(P, S);
+    const distQS = distance(Q, S);
+
+    // Draw line between the two most extreme points to show collinearity
     if (distPQ >= distPS && distPQ >= distQS) {
-        drawLine(P.x, P.y, Q.x, Q.y, '#FF9800', 2);
+        drawLine(P.x, P.y, Q.x, Q.y, COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH);
     } else if (distPS >= distPQ && distPS >= distQS) {
-        drawLine(P.x, P.y, S.x, S.y, '#FF9800', 2);
+        drawLine(P.x, P.y, S.x, S.y, COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH);
     } else {
-        drawLine(Q.x, Q.y, S.x, S.y, '#FF9800', 2);
+        drawLine(Q.x, Q.y, S.x, S.y, COLORS.COLLINEARITY_LINE, SIZES.COLLINEARITY_LINE_WIDTH);
     }
 
     // Draw the main points
@@ -194,15 +243,17 @@ function draw() {
     drawPoint(S, 'S', S.x, S.y);
 }
 
+// ============================================================================
+// MOUSE INTERACTION HELPERS
+// ============================================================================
+
 // Check if mouse is over a point
 function getPointAtPosition(mouseX, mouseY) {
     for (let label in points) {
         const point = points[label];
-        const dx = mouseX - point.x;
-        const dy = mouseY - point.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const dist = distance({ x: mouseX, y: mouseY }, point);
 
-        if (distance <= point.radius + 5) {
+        if (dist <= point.radius + 5) {
             return label;
         }
     }
@@ -217,6 +268,10 @@ function getMousePos(e) {
         y: e.clientY - rect.top
     };
 }
+
+// ============================================================================
+// EVENT HANDLERS
+// ============================================================================
 
 // Mouse down event
 canvas.addEventListener('mousedown', (e) => {
@@ -265,6 +320,10 @@ document.addEventListener('mouseup', () => {
         canvas.style.cursor = 'default';
     }
 });
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
 
 // Reset button handler
 const resetButton = document.getElementById('resetButton');
