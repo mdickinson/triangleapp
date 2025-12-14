@@ -159,8 +159,19 @@ function draw() {
     // Draw perpendicular from D to S
     drawLine(D.x, D.y, S.x, S.y, '#9C27B0', 1.5);
 
-    // Draw line from P to S
-    drawLine(P.x, P.y, S.x, S.y, '#FF9800', 2);
+    // Determine which two of P, Q, S are most extreme (furthest apart)
+    const distPQ = Math.sqrt((P.x - Q.x) ** 2 + (P.y - Q.y) ** 2);
+    const distPS = Math.sqrt((P.x - S.x) ** 2 + (P.y - S.y) ** 2);
+    const distQS = Math.sqrt((Q.x - S.x) ** 2 + (Q.y - S.y) ** 2);
+    
+    // Draw line between the two most extreme points
+    if (distPQ >= distPS && distPQ >= distQS) {
+        drawLine(P.x, P.y, Q.x, Q.y, '#FF9800', 2);
+    } else if (distPS >= distPQ && distPS >= distQS) {
+        drawLine(P.x, P.y, S.x, S.y, '#FF9800', 2);
+    } else {
+        drawLine(Q.x, Q.y, S.x, S.y, '#FF9800', 2);
+    }
 
     // Draw the main points
     drawPoint(points.A, 'A', points.A.x, points.A.y);
