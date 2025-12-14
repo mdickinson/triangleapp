@@ -2,6 +2,12 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 // Initialize points A, B, and C
+const initialPositions = {
+    A: { x: 200, y: 150 },
+    B: { x: 600, y: 150 },
+    C: { x: 400, y: 450 }
+};
+
 const points = {
     A: { x: 200, y: 150, radius: 8 },
     B: { x: 600, y: 150, radius: 8 },
@@ -10,6 +16,22 @@ const points = {
 
 let draggedPoint = null;
 let isDragging = false;
+
+// Clamp a value between min and max
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+// Reset all points to their initial positions
+function resetPoints() {
+    points.A.x = initialPositions.A.x;
+    points.A.y = initialPositions.A.y;
+    points.B.x = initialPositions.B.x;
+    points.B.y = initialPositions.B.y;
+    points.C.x = initialPositions.C.x;
+    points.C.y = initialPositions.C.y;
+    draw();
+}
 
 // Draw a point
 function drawPoint(point, label, x, y) {
@@ -177,9 +199,10 @@ document.addEventListener('mousemove', (e) => {
     if (isDragging && draggedPoint) {
         const mousePos = getMousePos(e);
 
-        // Update the position of the dragged point
-        points[draggedPoint].x = mousePos.x;
-        points[draggedPoint].y = mousePos.y;
+        // Update the position of the dragged point with boundary constraints
+        const point = points[draggedPoint];
+        points[draggedPoint].x = clamp(mousePos.x, point.radius, canvas.width - point.radius);
+        points[draggedPoint].y = clamp(mousePos.y, point.radius, canvas.height - point.radius);
 
         // Redraw the scene
         draw();
@@ -195,6 +218,10 @@ document.addEventListener('mouseup', () => {
         canvas.style.cursor = 'default';
     }
 });
+
+// Reset button handler
+const resetButton = document.getElementById('resetButton');
+resetButton.addEventListener('click', resetPoints);
 
 // Initial draw
 draw();

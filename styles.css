@@ -43,3 +43,23 @@ p {
 #canvas.grabbing {
     cursor: grabbing;
 }
+
+.reset-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.reset-btn:hover {
+    background-color: #1976D2;
+}
+
+.reset-btn:active {
+    background-color: #0D47A1;
+}
