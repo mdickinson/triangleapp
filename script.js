@@ -214,6 +214,9 @@ function draw() {
     // Draw faded extension for line BE
     drawExtendedLine(points.B.x, points.B.y, E.x, E.y);
 
+    // Draw faded extension for line CF
+    drawExtendedLine(points.C.x, points.C.y, F.x, F.y);
+
     // Calculate point P (foot of perpendicular from D to AB)
     const P = footOfPerpendicular(D, points.A, points.B);
 
